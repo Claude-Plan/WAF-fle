@@ -1,0 +1,43 @@
+{
+  "$id": "signal.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "label",
+    "raw",
+    "normalized",
+    "weight",
+    "contribution",
+    "applicable",
+    "evidence"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    },
+    "raw": {},
+    "normalized": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "weight": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "contribution": {
+      "type": "number"
+    },
+    "applicable": {
+      "type": "boolean"
+    },
+    "evidence": {
+      "type": "string"
+    }
+  }
+}

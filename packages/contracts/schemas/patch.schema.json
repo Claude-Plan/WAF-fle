@@ -1,0 +1,68 @@
+{
+  "$id": "patch.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "finding_id",
+    "version",
+    "source",
+    "mode",
+    "status",
+    "meta",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "finding_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "parent_patch_id": {
+      "type": ["string", "null"],
+      "format": "uuid"
+    },
+    "source": {
+      "enum": ["deterministic", "llm", "hybrid", "baseline", "hardened"]
+    },
+    "rule": {
+      "type": ["object", "null"]
+    },
+    "mode": {
+      "enum": ["shadow", "enforce"]
+    },
+    "status": {
+      "enum": [
+        "generating",
+        "draft",
+        "verifying",
+        "verified",
+        "failed",
+        "deployed",
+        "rolled_back"
+      ]
+    },
+    "rationale": {
+      "type": ["string", "null"]
+    },
+    "meta": {
+      "type": "object"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "deployed_at": {
+      "type": ["string", "null"]
+    },
+    "verification": {
+      "type": ["object", "null"]
+    }
+  }
+}

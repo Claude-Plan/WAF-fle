@@ -1,0 +1,136 @@
+{
+  "$id": "finding.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "scan_id",
+    "target_id",
+    "title",
+    "category",
+    "scanner_risk",
+    "method",
+    "url",
+    "status",
+    "dedupe_key",
+    "provenance",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "scan_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "target_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "title": {
+      "type": "string"
+    },
+    "cwe": {
+      "type": ["integer", "null"]
+    },
+    "cve": {
+      "type": ["string", "null"]
+    },
+    "category": {
+      "enum": [
+        "sqli",
+        "xss",
+        "cmdi",
+        "path_traversal",
+        "ssrf",
+        "auth",
+        "info_leak",
+        "other"
+      ]
+    },
+    "scanner_risk": {
+      "enum": ["info", "low", "medium", "high", "critical"]
+    },
+    "method": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "route_template": {
+      "type": ["string", "null"]
+    },
+    "param": {
+      "type": ["string", "null"]
+    },
+    "param_location": {
+      "type": ["string", "null"],
+      "enum": [
+        "query",
+        "body_form",
+        "body_json",
+        "header",
+        "cookie",
+        "path",
+        null
+      ]
+    },
+    "evidence": {
+      "type": ["string", "null"]
+    },
+    "exploit_request": {
+      "type": ["object", "null"],
+      "properties": {
+        "method": { "type": "string" },
+        "url": { "type": "string" },
+        "headers": { "type": "object" },
+        "body": {}
+      }
+    },
+    "exploit_oracle": {
+      "type": ["object", "null"],
+      "properties": {
+        "success_status": {
+          "type": "array",
+          "items": { "type": "integer" }
+        },
+        "success_body_regex": {
+          "type": ["string", "null"]
+        },
+        "success_header_regex": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "exploit_confirmed": {
+      "type": "boolean"
+    },
+    "status": {
+      "enum": ["open", "triaged", "patched", "verified", "dismissed"]
+    },
+    "dedupe_key": {
+      "type": "string"
+    },
+    "provenance": {
+      "enum": [
+        "real_scan",
+        "real_capture",
+        "public_feed",
+        "user_input",
+        "generated"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "triage": {
+      "type": ["object", "null"]
+    },
+    "patches": {
+      "type": "array",
+      "items": { "type": "object" }
+    }
+  }
+}

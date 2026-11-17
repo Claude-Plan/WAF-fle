@@ -1,0 +1,1094 @@
+openapi: 3.0.3
+info:
+  title: ShieldLens Control Plane API
+  version: "1.0"
+  description: >
+    Frozen contract API specification for ShieldLens Prototype B.
+    All routes under base path /api/v1 (except /internal/v1 routes).
+servers:
+  - url: http://localhost:4000/api/v1
+    description: Control Plane API Local Server
+  - url: http://localhost:4000
+    description: Root Server
+
+components:
+  securitySchemes:
+    InternalTokenAuth:
+      type: apiKey
+      in: header
+      name: X-Internal-Token
+
+  schemas:
+    ErrorEnvelope:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+            - details
+          properties:
+            code:
+              type: string
+              example: NOT_IMPLEMENTED
+            message:
+              type: string
+              example: Endpoint is stubbed
+            details:
+              type: object
+              additionalProperties: true
+
+    Target:
+      type: object
+      required:
+        - id
+        - name
+        - base_url
+        - proxy_url
+        - mode
+        - internet_facing
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        base_url:
+          type: string
+        proxy_url:
+          type: string
+        mode:
+          type: string
+          enum: [learn, protect]
+        internet_facing:
+          type: boolean
+        created_at:
+          type: string
+
+    Scan:
+      type: object
+      required:
+        - id
+        - target_id
+        - scanner
+        - status
+        - provenance
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        target_id:
+          type: string
+          format: uuid
+        scanner:
+          type: string
+          enum: [zap, recipe, import]
+        status:
+          type: string
+          enum: [queued, running, completed, failed]
+        started_at:
+          type: string
+          nullable: true
+        finished_at:
+          type: string
+          nullable: true
+        stats:
+          type: object
+        error:
+          type: string
+          nullable: true
+        provenance:
+          type: string
+        created_at:
+          type: string
+
+    Finding:
+      $ref: './schemas/finding.schema.json'
+
+    Patch:
+      $ref: './schemas/patch.schema.json'
+
+    Rule:
+      $ref: './schemas/rule.schema.json'
+
+    VerificationSummary:
+      $ref: './schemas/verification_summary.schema.json'
+
+    Signal:
+      $ref: './schemas/signal.schema.json'
+
+    RouteProfile:
+      $ref: './schemas/route_profile.schema.json'
+
+paths:
+  /health:
+    get:
+      summary: System health check
+      responses:
+        '200':
+          description: Health status of all subsystems
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /llm/health:
+    get:
+      summary: Ollama LLM health check
+      responses:
+        '200':
+          description: Ollama reachability and active model
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /llm/selftest:
+    post:
+      summary: Ollama self-test validation (Gate G2)
+      responses:
+        '200':
+          description: Self-test results
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /targets:
+    post:
+      summary: Create new target
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, base_url, proxy_url]
+              properties:
+                name: { type: string }
+                base_url: { type: string }
+                proxy_url: { type: string }
+                internet_facing: { type: boolean, default: true }
+      responses:
+        '201':
+          description: Created target
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    get:
+      summary: List targets
+      responses:
+        '200':
+          description: Target list
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /targets/{id}:
+    get:
+      summary: Get target by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Target details
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    patch:
+      summary: Update target mode or visibility
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mode: { type: string, enum: [learn, protect] }
+                internet_facing: { type: boolean }
+      responses:
+        '200':
+          description: Updated target
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /scans:
+    post:
+      summary: Launch scan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target_id, scanner]
+              properties:
+                target_id: { type: string, format: uuid }
+                scanner: { type: string, enum: [zap, recipe] }
+                options: { type: object }
+      responses:
+        '202':
+          description: Scan queued
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    get:
+      summary: List scans
+      responses:
+        '200':
+          description: Scans list
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /scans/import:
+    post:
+      summary: Import scanner report
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [target_id, format, file]
+              properties:
+                target_id: { type: string, format: uuid }
+                format: { type: string, enum: [zap_json] }
+                file: { type: string, format: binary }
+      responses:
+        '202':
+          description: Import queued
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /scans/{id}:
+    get:
+      summary: Get scan details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Scan details
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /findings:
+    get:
+      summary: List findings
+      parameters:
+        - name: scan_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: target_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema: { type: string, enum: [open, triaged, patched, verified, dismissed] }
+        - name: category
+          in: query
+          schema: { type: string }
+        - name: band
+          in: query
+          schema: { type: string, enum: [P0, P1, P2, P3] }
+        - name: sort
+          in: query
+          schema: { type: string, enum: [priority, created] }
+      responses:
+        '200':
+          description: Findings list
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /findings/{id}:
+    get:
+      summary: Get finding detail with triage and patches
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Finding detail
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    patch:
+      summary: Update finding status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [open, dismissed] }
+      responses:
+        '200':
+          description: Updated finding
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /findings/{id}/confirm:
+    post:
+      summary: Run exploit oracle directly on target
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Exploit execution result
+        '422':
+          description: No exploit recipe available
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /triage/run:
+    post:
+      summary: Run triage scoring
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scan_id: { type: string, format: uuid }
+                finding_ids: { type: array, items: { type: string, format: uuid } }
+                model_version: { type: string, enum: [base-v1, exposure-v1] }
+      responses:
+        '202':
+          description: Triage queued
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /findings/{id}/triage:
+    get:
+      summary: Get triage result
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Triage result
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /findings/{id}/triage/explain:
+    post:
+      summary: Re-run LLM triage explanation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Triage explanation result
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /findings/{id}/exposure:
+    get:
+      summary: Get exposure details for finding
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Exposure telemetry
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /triage/compare:
+    get:
+      summary: Compare base-v1 vs exposure-v1 triage rankings
+      parameters:
+        - name: target_id
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Comparison delta rankings
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /intel/status:
+    get:
+      summary: Threat intelligence status
+      responses:
+        '200':
+          description: KEV and EPSS record counts
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /intel/cve/{cve}:
+    get:
+      summary: Lookup CVE in threat intel
+      parameters:
+        - name: cve
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: CVE intel record
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /findings/{id}/patches:
+    post:
+      summary: Generate patch for finding
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                strategy: { type: string, enum: [auto, deterministic, llm] }
+      responses:
+        '202':
+          description: Patch generating
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /patches:
+    get:
+      summary: List patches
+      parameters:
+        - name: finding_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Patch list
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /patches/{id}:
+    get:
+      summary: Get patch details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Patch details with latest verification summary
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /patches/{id}/verify:
+    post:
+      summary: Trigger patch verification suite
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '202':
+          description: Verification queued
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /patches/{id}/deploy:
+    post:
+      summary: Deploy patch in shadow or enforce mode
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mode]
+              properties:
+                mode: { type: string, enum: [shadow, enforce] }
+                force: { type: boolean }
+      responses:
+        '200':
+          description: Patch deployed
+        '409':
+          description: Patch not verified (unless force true)
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /patches/{id}/rollback:
+    post:
+      summary: Rollback patch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Patch rolled back
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /patches/{id}/export:
+    get:
+      summary: Export patch rule
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: format
+          in: query
+          schema: { type: string, enum: [modsecurity, json], default: modsecurity }
+      responses:
+        '200':
+          description: Formatted rule
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /patches/{id}/promotion:
+    get:
+      summary: Get shadow to enforce promotion checklist
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Promotion eligibility and checklist items
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /verifications/{id}:
+    get:
+      summary: Get verification summary
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Verification summary
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /verifications/{id}/cases:
+    get:
+      summary: List verification test cases
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: suite
+          in: query
+          schema: { type: string, enum: [exploit_replay, benign_replay, mutation, baseline_conformance] }
+        - name: outcome
+          in: query
+          schema: { type: string, enum: [pass, fail, skipped, invalid_mutant] }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: offset
+          in: query
+          schema: { type: integer, default: 0 }
+      responses:
+        '200':
+          description: Verification test cases
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /events:
+    get:
+      summary: List proxy events
+      parameters:
+        - name: target_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: decision
+          in: query
+          schema: { type: string, enum: [allow, block, log_only, error] }
+        - name: since
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: anomaly
+          in: query
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Proxy events list
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /events/stats:
+    get:
+      summary: Get proxy event telemetry statistics
+      parameters:
+        - name: target_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: window
+          in: query
+          schema: { type: string, enum: [15m, 1h, 24h], default: 1h }
+      responses:
+        '200':
+          description: Event telemetry stats
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /corpus/stats:
+    get:
+      summary: Get traffic corpus statistics
+      parameters:
+        - name: target_id
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Corpus statistics
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /benchmarks:
+    get:
+      summary: List benchmark runs
+      responses:
+        '200':
+          description: Stored benchmark runs
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /benchmarks/run:
+    post:
+      summary: Launch benchmark run
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target_id, config]
+              properties:
+                target_id: { type: string, format: uuid }
+                config: { type: object }
+      responses:
+        '202':
+          description: Benchmark run queued
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /benchmarks/{id}:
+    get:
+      summary: Get benchmark run details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Benchmark run results
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /stream:
+    get:
+      summary: Server-Sent Events stream
+      responses:
+        '200':
+          description: SSE stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  /profiles/rebuild:
+    post:
+      summary: Rebuild adaptive route profiles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target_id]
+              properties:
+                target_id: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Profiles rebuild summary
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /profiles:
+    get:
+      summary: List route profiles
+      parameters:
+        - name: target_id
+          in: query
+          schema: { type: string, format: uuid }
+        - name: route
+          in: query
+          schema: { type: string }
+        - name: min_samples
+          in: query
+          schema: { type: integer }
+        - name: discriminative
+          in: query
+          schema: { type: boolean }
+      responses:
+        '200':
+          description: Route profile list
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /profiles/{id}:
+    get:
+      summary: Get route profile details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Route profile details
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /profiles/{id}/lock:
+    post:
+      summary: Lock parameter into positive baseline patch
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [finding_id]
+              properties:
+                finding_id: { type: string, format: uuid }
+      responses:
+        '202':
+          description: Baseline patch queued
+        '409':
+          description: Refused if profile is not discriminative
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /internal/v1/rules/active:
+    get:
+      summary: Proxy poll for active deployed rules
+      security:
+        - InternalTokenAuth: []
+      parameters:
+        - name: target_id
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Active rules with ETag
+        '304':
+          description: Not Modified
+        '401':
+          description: Unauthorized
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /internal/v1/rules/candidate/{patch_id}:
+    get:
+      summary: Fetch candidate rule for verification
+      security:
+        - InternalTokenAuth: []
+      parameters:
+        - name: patch_id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Candidate rule
+        '401':
+          description: Unauthorized
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /internal/v1/events:
+    post:
+      summary: Batch ingest proxy decision events
+      security:
+        - InternalTokenAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              maxItems: 200
+              items: { type: object }
+      responses:
+        '200':
+          description: Batch accepted
+        '401':
+          description: Unauthorized
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /internal/v1/corpus:
+    post:
+      summary: Batch ingest labeled corpus captures
+      security:
+        - InternalTokenAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items: { type: object }
+      responses:
+        '200':
+          description: Batch captured
+        '401':
+          description: Unauthorized
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /internal/v1/profiles/active:
+    get:
+      summary: Proxy poll for active baseline profiles
+      security:
+        - InternalTokenAuth: []
+      parameters:
+        - name: target_id
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Active profiles with ETag
+        '304':
+          description: Not Modified
+        '401':
+          description: Unauthorized
+        '501':
+          description: Not Implemented stub
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'

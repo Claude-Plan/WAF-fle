@@ -1,0 +1,28 @@
+{
+  "$id": "sse_events.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "ts", "data"],
+  "properties": {
+    "type": {
+      "enum": [
+        "scan.updated",
+        "finding.created",
+        "finding.updated",
+        "triage.completed",
+        "patch.updated",
+        "verification.updated",
+        "verification.case",
+        "proxy.event",
+        "profile.rebuilt",
+        "anomaly.detected"
+      ]
+    },
+    "ts": {
+      "type": "string"
+    },
+    "data": {
+      "type": "object"
+    }
+  }
+}

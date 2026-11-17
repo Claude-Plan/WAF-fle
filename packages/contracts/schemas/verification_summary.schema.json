@@ -1,0 +1,74 @@
+{
+  "$id": "verification_summary.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["suites", "gate", "engine_latency_ms", "notes"],
+  "properties": {
+    "suites": {
+      "type": "object",
+      "required": ["exploit_replay", "benign_replay"],
+      "properties": {
+        "exploit_replay": {
+          "type": ["object", "null"],
+          "properties": {
+            "total": { "type": "integer" },
+            "passed": { "type": "integer" },
+            "failed": { "type": "integer" },
+            "direct_confirmed": { "type": "boolean" }
+          }
+        },
+        "benign_replay": {
+          "type": ["object", "null"],
+          "properties": {
+            "total": { "type": "integer" },
+            "passed": { "type": "integer" },
+            "failed": { "type": "integer" },
+            "false_positive_rate": { "type": "number" }
+          }
+        },
+        "mutation": {
+          "type": ["object", "null"]
+        },
+        "baseline_conformance": {
+          "type": ["object", "null"],
+          "properties": {
+            "holdout_total": { "type": "integer" },
+            "holdout_blocked": { "type": "integer" },
+            "fp_rate": { "type": "number" },
+            "attack_total": { "type": "integer" },
+            "attack_blocked": { "type": "integer" },
+            "detection_rate": { "type": "number" }
+          }
+        }
+      }
+    },
+    "gate": {
+      "type": "object",
+      "required": ["required", "passed", "reasons"],
+      "properties": {
+        "required": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "passed": {
+          "type": "boolean"
+        },
+        "reasons": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "engine_latency_ms": {
+      "type": "object",
+      "properties": {
+        "p50": { "type": "number" },
+        "p95": { "type": "number" }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

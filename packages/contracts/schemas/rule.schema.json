@@ -1,0 +1,147 @@
+{
+  "$id": "rule.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "name",
+    "scope",
+    "inspect",
+    "normalize",
+    "condition",
+    "action",
+    "mode"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 120
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path"],
+      "properties": {
+        "methods": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]
+          }
+        },
+        "path": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind", "value"],
+          "properties": {
+            "kind": {
+              "enum": ["exact", "prefix", "template"]
+            },
+            "value": {
+              "type": "string",
+              "maxLength": 300
+            }
+          }
+        }
+      }
+    },
+    "inspect": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["location", "name"],
+        "properties": {
+          "location": {
+            "enum": [
+              "query",
+              "body_form",
+              "body_json",
+              "body_raw",
+              "header",
+              "cookie",
+              "path"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          }
+        }
+      }
+    },
+    "normalize": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "enum": [
+          "url_decode_once",
+          "url_decode_recursive",
+          "html_entity_decode",
+          "json_unicode_unescape",
+          "unicode_nfkc",
+          "lowercase",
+          "strip_sql_comments",
+          "strip_whitespace_variants",
+          "collapse_whitespace",
+          "remove_null_bytes"
+        ]
+      }
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["op", "value"],
+      "properties": {
+        "op": {
+          "enum": [
+            "regex_match",
+            "regex_not_match",
+            "contains_any",
+            "max_length"
+          ]
+        },
+        "value": {
+          "oneOf": [
+            {
+              "type": "string",
+              "maxLength": 400
+            },
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000
+            },
+            {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 50,
+              "items": {
+                "type": "string",
+                "maxLength": 100
+              }
+            }
+          ]
+        }
+      }
+    },
+    "action": {
+      "const": "block"
+    },
+    "mode": {
+      "enum": ["shadow", "enforce"]
+    },
+    "meta": {
+      "type": "object"
+    }
+  }
+}

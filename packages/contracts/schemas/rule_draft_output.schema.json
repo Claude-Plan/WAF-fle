@@ -1,0 +1,16 @@
+{
+  "$id": "rule_draft_output.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["candidates"],
+  "properties": {
+    "candidates": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "items": {
+        "$ref": "rule.schema.json"
+      }
+    }
+  }
+}
